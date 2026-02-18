@@ -3,95 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>カウンター</title>
+    <title>頑丈なスマホカウンター</title>
     <style>
+        /* スタイルは維持しつつ、タッチ操作をより確実に */
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            margin: 0; 
-            display: flex; 
-            flex-direction: column; 
-            height: 100vh; 
-            background-color: #f0f4f8;
-            touch-action: manipulation;
-            user-select: none;
+            font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; 
+            background-color: #f0f4f8; touch-action: manipulation; -webkit-user-select: none; user-select: none;
         }
-
-        /* 目標表示エリア */
-        .header { 
-            padding: 15px; 
-            background: #fff; 
-            border-bottom: 2px solid #e1e8ed;
-            text-align: center;
-        }
-        .goal-label { font-size: 0.8rem; color: #888; margin-bottom: 5px; display: block; }
+        .header { padding: 20px; background: white; text-align: center; border-bottom: 2px solid #ddd; }
+        .goal-label { font-size: 0.9rem; color: #666; font-weight: bold; }
+        /* inputのサイズ調整と、スマホの「完了」ボタンを押しやすく */
         .goal-input { 
-            font-size: 1.4rem; 
-            width: 100px; 
-            padding: 5px; 
-            border: 2px solid #cbd5e0; 
-            border-radius: 8px; 
-            text-align: center;
-            font-weight: bold;
-            color: #2d3748;
+            font-size: 1.6rem; width: 140px; padding: 10px; border: 2px solid #ccc; 
+            border-radius: 10px; text-align: center;
         }
-
-        /* メインカウントエリア */
-        .display-area { 
-            flex-grow: 1; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: center; 
-            align-items: center; 
-        }
-        .total { font-size: 7rem; font-weight: 900; color: #2b6cb0; line-height: 1; margin-bottom: 10px; }
-        .status-text { font-size: 1.4rem; color: #4a5568; font-weight: bold; }
-
-        /* ボタンエリア */
-        .controls { 
-            padding: 20px; 
-            background: #fff; 
-            display: grid; 
-            grid-template-columns: repeat(2, 1fr); 
-            gap: 12px;
-            padding-bottom: calc(20px + env(safe-area-inset-bottom));
-            border-radius: 24px 24px 0 0;
-            box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
-        }
-
-        button { 
-            -webkit-appearance: none;
-            border: none; 
-            border-radius: 16px; 
-            font-size: 1.8rem; 
-            font-weight: bold; 
-            padding: 22px 0; 
-            cursor: pointer;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
-            transition: transform 0.05s;
-        }
+        .display-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .total { font-size: 7rem; font-weight: bold; color: #1a73e8; margin: 0; }
+        .status-text { font-size: 1.5rem; font-weight: bold; color: #444; height: 2rem; }
         
-        button:active { transform: translateY(4px); box-shadow: none; opacity: 0.9; }
-
-        .btn-plus { background-color: #48bb78; color: white; }
-        .btn-reset { 
-            background-color: #f56565; 
-            color: white; 
-            grid-column: span 2; 
-            font-size: 1.1rem; 
-            padding: 12px 0;
-            margin-top: 10px;
-            box-shadow: 0 2px 0 rgba(0,0,0,0.1);
+        .controls { 
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 20px; 
+            background: white; padding-bottom: calc(20px + env(safe-area-inset-bottom));
         }
-
-        .reached { color: #ed8936; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        button { 
+            padding: 25px 0; font-size: 2rem; font-weight: bold; border: none; border-radius: 15px;
+            background-color: #34a853; color: white; box-shadow: 0 5px 0 #27803f;
+        }
+        button:active { transform: translateY(4px); box-shadow: none; }
+        .btn-reset { 
+            background-color: #ea4335; grid-column: span 2; font-size: 1.2rem; padding: 15px 0;
+            box-shadow: 0 5px 0 #b33429; margin-top: 10px;
+        }
+        .reached { color: #f39c12; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <span class="goal-label">GOAL / 目標値</span>
-        <input type="number" id="goalInput" class="goal-input" value="100">
+        <label class="goal-label">目標値</label><br>
+        <input type="number" id="goalInput" class="goal-input" value="100" inputmode="numeric">
     </div>
 
     <div class="display-area">
@@ -100,36 +50,83 @@
     </div>
 
     <div class="controls">
-        <button class="btn-plus" onclick="add(1)">+1</button>
-        <button class="btn-plus" onclick="add(2)">+2</button>
-        <button class="btn-plus" onclick="add(3)">+3</button>
-        <button class="btn-plus" onclick="add(5)">+5</button>
-        <button class="btn-reset" onclick="reset()">リセット</button>
+        <button type="button" onclick="handleButtonClick(1)">+1</button>
+        <button type="button" onclick="handleButtonClick(2)">+2</button>
+        <button type="button" onclick="handleButtonClick(3)">+3</button>
+        <button type="button" onclick="handleButtonClick(5)">+5</button>
+        <button type="button" class="btn-reset" onclick="handleReset()">リセット</button>
     </div>
 
 <script>
-    // 状態の管理
-    let state = {
-        count: 0,
-        goal: 100
-    };
+    // データの初期値
+    let count = 0;
+    let goal = 100;
 
-    // データの読み込み
+    // 要素を取得
+    const countEl = document.getElementById('countDisplay');
+    const statusEl = document.getElementById('statusDisplay');
+    const goalInputEl = document.getElementById('goalInput');
+
+    // 保存機能（エラーが起きても無視して続行するように設定）
     function loadData() {
-        const saved = localStorage.getItem('myCounterData');
-        if (saved) {
-            state = JSON.parse(saved);
-            document.getElementById('goalInput').value = state.goal;
+        try {
+            const savedCount = localStorage.getItem('myCount');
+            const savedGoal = localStorage.getItem('myGoal');
+            if (savedCount !== null) count = parseInt(savedCount);
+            if (savedGoal !== null) {
+                goal = parseInt(savedGoal);
+                goalInputEl.value = goal;
+            }
+        } catch (e) {
+            console.log("Storage is blocked, but that's okay!");
         }
-        updateDisplay(false); // 保存はせずに表示だけ更新
+        updateDisplay();
     }
 
-    // データの保存
     function saveData() {
-        state.goal = parseInt(document.getElementById('goalInput').value) || 0;
-        localStorage.setItem('myCounterData', JSON.stringify(state));
+        try {
+            localStorage.setItem('myCount', count);
+            localStorage.setItem('myGoal', goalInputEl.value);
+        } catch (e) {
+            // 保存できなくても動作は止めない
+        }
     }
 
-    function updateDisplay(shouldSave = true) {
-        const display = document.getElementById('countDisplay');
-        const
+    // 表示を更新
+    function updateDisplay() {
+        goal = parseInt(goalInputEl.value) || 0;
+        countEl.innerText = count;
+
+        if (count >= goal && goal > 0) {
+            statusEl.innerHTML = "<span class='reached'>🎉 目標達成！</span>";
+        } else {
+            statusEl.innerHTML = "あと <span style='color:#e74c3c;'>" + (goal - count) + "</span>";
+        }
+        saveData();
+    }
+
+    // ボタンが押された時の処理
+    function handleButtonClick(value) {
+        count += value;
+        // バイブレーション（動かなくてもエラーにしない）
+        if (navigator.vibrate) navigator.vibrate(10);
+        updateDisplay();
+    }
+
+    // リセット
+    function handleReset() {
+        if (confirm("カウントをリセットしますか？")) {
+            count = 0;
+            updateDisplay();
+        }
+    }
+
+    // 入力欄が変更されたら即反映
+    goalInputEl.addEventListener('input', updateDisplay);
+
+    // 読み込み開始
+    window.onload = loadData;
+</script>
+
+</body>
+</html>
